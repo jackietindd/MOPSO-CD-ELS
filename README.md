@@ -3,7 +3,7 @@
 # MOPSO-CD-ELS
 
 This is the code for implementing the MOPSO-CD-ELS algorithm presented in the paper:
-[A bi-objective load balancing model in a distributed simulation system using NSGA-II and MOPSO approaches](https://www.sciencedirect.com/science/article/pii/S1568494617305513). Please noted that the evaluation function of the load balancing problem is not provided. Only the benchmark functions are considered.
+[A bi-objective load balancing model in a distributed simulation system using NSGA-II and MOPSO approaches](https://www.sciencedirect.com/science/article/pii/S1568494617305513). Please noted that the evaluation function of the load balancing problem is not provided. Only some benchmark functions are considered.
 
 # Algorithm
 * MOPSO-CD
