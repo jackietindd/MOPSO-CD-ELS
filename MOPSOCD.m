@@ -18,26 +18,26 @@ function REP = MOPSOCD(params,MultiObj)
 
     
      
-    d=nVar;   %搜索空间维数（未知数个数） 
+    d=nVar;   %�����ռ�ά����δ֪�������� 
 
     xmin=var_min;
     xmax=var_max;
     xrange=xmax-xmin;
 
 
-    n=Np;  %初始化群体个体数目 
-    MaxDT=maxgen;    %最大迭代次数 
+    n=Np;  %��ʼ��Ⱥ�������Ŀ 
+    MaxDT=maxgen;    %���������� 
 
-    rp=[];  %外部存档，档案里存的是每代保存下来的非支配解，也是算法求解的结果 
-    rpmax=Nr;  %档案规模 
+    rp=[];  %�ⲿ�浵������������ÿ�����������ķ�֧��⣬Ҳ���㷨���Ľ�� 
+    rpmax=Nr;  %������ģ 
     c1=C1;c2=C2;
-    w=W;   %惯性权重 
-    % pbx n*d   矩阵---个体最优解 
-    % gbx n*d   矩阵---全局最优解（每个粒子的全局最优解都不同） 
-    % pbf n*k   矩阵----个体最优值 
-    % gbf n*k   矩阵----全局最优值 
+    w=W;   %����Ȩ�� 
+    % pbx n*d   ����---�������Ž� 
+    % gbx n*d   ����---ȫ�����Ž⣨ÿ�����ӵ�ȫ�����Žⶼ��ͬ�� 
+    % pbf n*k   ����----��������ֵ 
+    % gbf n*k   ����----ȫ������ֵ 
 
-    %产生随机 n 个粒子,初始化粒子的位置和速度 
+    %������� n ������,��ʼ�����ӵ�λ�ú��ٶ� 
     %x=xmin+xrange.*rand(n,d);
 
     x=[];
@@ -50,15 +50,15 @@ function REP = MOPSOCD(params,MultiObj)
     maxvel   = (var_max-var_min).*maxvel./100;
 
     tmp = fun(x);
-    %计算粒子的适应度 
-    k=size(tmp,2);  %目标函数个数
+    %�������ӵ���Ӧ�� 
+    k=size(tmp,2);  %Ŀ�꺯������
     x(:,2*d+1:2*d+k)=tmp; 
     x(:,d+1:2*d)=v; 
     
-    %求个体极值和全局极值 
-    pbx=x(:,1:d);   %个体最优位置为初始粒子本身 
+    %����弫ֵ��ȫ�ּ�ֵ 
+    pbx=x(:,1:d);   %��������λ��Ϊ��ʼ���ӱ��� 
     pbf=x(:,2*d+1:2*d+k); 
-    gbx=x(:,1:d);   %全局最优位置为初始粒子本身 
+    gbx=x(:,1:d);   %ȫ������λ��Ϊ��ʼ���ӱ��� 
     gbf=x(:,2*d+1:2*d+k); 
     xk=x(:,1:d); 
     v=x(:,(d+1):2*d); 
@@ -99,9 +99,9 @@ function REP = MOPSOCD(params,MultiObj)
     
     
 
-    %开始循环 
+    %��ʼѭ�� 
     for t=1:MaxDT 
-        %根据粒子群公式迭代，位置、速度更新 
+        %��������Ⱥ��ʽ������λ�á��ٶȸ��� 
         gen = t;
         for i=1:n           
             %v(i,:)=0.3.*randn(1,d)+c1.*rand.*(pbx(i,:)-xk(i,:))+c2.*rand.*(gbx(i,:)-xk(i,:)); 
@@ -129,7 +129,14 @@ function REP = MOPSOCD(params,MultiObj)
             pm=(1-(t-1)/(MaxDT-1))^(1/mu);
             if rand<pm
                 xk(i,:) = Mutate(xk(i,:),pm,xmin,xmax);
-            end    
+            end 
+            for j=1:d 
+                if xk(i,j)>xmax(j) 
+                    xk(i,j)=xmax(j);
+                elseif xk(i,j)<xmin(j) 
+                    xk(i,j)=xmin(j);
+                end 
+            end 
         end
         
         
@@ -138,15 +145,15 @@ function REP = MOPSOCD(params,MultiObj)
         
         x(:,1:d)=xk; 
         x(:,(d+1):2*d)=v; 
-        %计算粒子的适应度 
+        %�������ӵ���Ӧ�� 
         x(:,2*d+1:2*d+k)=fun(xk); 
 
-        %求非支配解集 np（快速排序法） 
+        %���֧��⼯ np���������򷨣� 
         q=x;np=[]; 
         while isempty(q)==0 
             xsb=q(1,:); 
             q(1,:)=[]; 
-            flag=1;    %若 flag==1，则 xsb 是非支配解，就可以放到非支配解集中了 
+            flag=1;    %�� flag==1���� xsb �Ƿ�֧��⣬�Ϳ��Էŵ���֧��⼯���� 
             [column,row]=size(q); 
             for i=1:column 
                 dom_less=0; 
@@ -162,22 +169,22 @@ function REP = MOPSOCD(params,MultiObj)
                     end 
                 end 
 
-                %若 xsb 支配 q(i)，则将 q(i)所在的行标记为 0，用来到最后删除此行做标记 
+                %�� xsb ֧�� q(i)���� q(i)���ڵ��б��Ϊ 0�����������ɾ����������� 
                 if dom_more==0&dom_equal~=k   
                     q(i,:)=0;  
-                %若 q(i)支配 xsb，那么 xsb 不是非支配解，不能被放入非支配解集
+                %�� q(i)֧�� xsb����ô xsb ���Ƿ�֧��⣬���ܱ������֧��⼯
                 elseif dom_less==0&dom_equal~=k  
                     flag=0;break 
                 end 
             end 
-            if flag==1     %若 xsb 是非支配解，则将其放入非支配解集 np 中 
+            if flag==1     %�� xsb �Ƿ�֧��⣬��������֧��⼯ np �� 
                 np=[np;xsb]; 
             end 
-            %将 q 中标记为 0 的行删除，剩下不被 xsb 支配的粒子，即快速排序的简便之处 
+            %�� q �б��Ϊ 0 ����ɾ����ʣ�²��� xsb ֧������ӣ�����������ļ��֮�� 
             q(~any(q,2),:)=[];  
         end 
 
-        %更新个体极值（若当前位置支配其个体极值位置，则更新为当前位置） 
+        %���¸��弫ֵ������ǰλ��֧������弫ֵλ�ã������Ϊ��ǰλ�ã� 
         for i=1:n 
             dom_less=0; 
             dom_equal=0; 
@@ -196,14 +203,14 @@ function REP = MOPSOCD(params,MultiObj)
                 pbx(i,:)=x(i,1:d); 
             end 
         end 
-        %更新外部集 rp(将非支配集按支配关系插入外部集）
+        %�����ⲿ�� rp(����֧�伯��֧���ϵ�����ⲿ����
         [column,row]=size(rp); 
         if column==0 
             rp=np; 
         else 
             [column2,row2]=size(np); 
             for i=1:column2 
-                flag=1;   %若 flag==1，则 np(i,:)是就可以放到外部集中了 
+                flag=1;   %�� flag==1���� np(i,:)�ǾͿ��Էŵ��ⲿ������ 
                 [column1,row1]=size(rp); 
                 for j=1:column1 
                     dom_less=0; 
@@ -218,17 +225,17 @@ function REP = MOPSOCD(params,MultiObj)
                             dom_more=dom_more+1; 
                         end 
                     end 
-                %若非支配集中的粒子 np(i,:)支配外部集中的粒子 rp(j,:)， 
-                %则将 rp(j,:)所在的行标记为 0，用来到最后删除此行做标记 
+                %����֧�伯�е����� np(i,:)֧���ⲿ���е����� rp(j,:)�� 
+                %�� rp(j,:)���ڵ��б��Ϊ 0�����������ɾ����������� 
                     if dom_more==0&dom_equal~=k 
                         rp(j,:)=0;  
-                %若 rp(j,:)支配 np(i,:)，则表示 np(i,:)被 rp(j,:)支配， 
-                %那么 np(i,:)就一定不是非支配解，就不能被放入非支配解集中了 
+                %�� rp(j,:)֧�� np(i,:)�����ʾ np(i,:)�� rp(j,:)֧�䣬 
+                %��ô np(i,:)��һ�����Ƿ�֧��⣬�Ͳ��ܱ������֧��⼯���� 
                     elseif dom_less==0&dom_equal~=k  
                         flag=0;break 
                     end 
                 end 
-                if flag==1     %若 flag==1，则 np(i,:)是就可以放到外部集中了 
+                if flag==1     %�� flag==1���� np(i,:)�ǾͿ��Էŵ��ⲿ������ 
                                         rp=[rp;np(i,:)]; 
                 end 
                 rp(~any(rp,2),:)=[]; 
@@ -246,14 +253,14 @@ function REP = MOPSOCD(params,MultiObj)
             end
         end
         rp(~any(rp,2),:)=[]; 
-        %基于拥挤距离控制档案规模 
-        %（计算外部集中粒子的拥挤距离，对拥挤距离进行降序排序，删除后面的多余个体） 
+        %����ӵ��������Ƶ�����ģ 
+        %�������ⲿ�������ӵ�ӵ�����룬��ӵ��������н�������ɾ������Ķ�����壩 
         [column,row]=size(rp); 
         indexrp=[1:column]'; 
-        rp=[rp indexrp];   %索引 
-        rp(:,2*d+k+2)=zeros(column,1);   %用来保存拥挤距离 
+        rp=[rp indexrp];   %���� 
+        rp(:,2*d+k+2)=zeros(column,1);   %��������ӵ������ 
         for i=1:k 
-            rp=sortrows(rp,2*d+i);   %将粒子进行对第 i 个目标函数值进行升序排列 
+            rp=sortrows(rp,2*d+i);   %�����ӽ��жԵ� i ��Ŀ�꺯��ֵ������������ 
             if column>2 
                 for j=2:column-1 
                     rp(j,2*d+k+2)= rp(j,2*d+k+2)+(rp(j+1,2*d+i)-rp(j-1,2*d+i))/(rp(column,2*d+i)-rp(1,2*d+i)); 
@@ -262,16 +269,16 @@ function REP = MOPSOCD(params,MultiObj)
             rp(1,2*d+k+2)=rp(1,2*d+k+2)+inf; 
             rp(column,2*d+k+2)=rp(column,2*d+k+2)+inf; 
         end 
-        rp=sortrows(rp,-(2*d+k+2));     %外部集根据拥挤距离降序排序 
+        rp=sortrows(rp,-(2*d+k+2));     %�ⲿ������ӵ�����뽵������ 
         if column>rpmax 
             rp=rp(1:rpmax,:); 
         end 
 
-        %更新全局极值（此时外部集已根据拥挤距离降序排序，从外部集的最前部分随机选择) 
+        %����ȫ�ּ�ֵ����ʱ�ⲿ���Ѹ���ӵ�����뽵�����򣬴��ⲿ������ǰ�������ѡ��) 
         for i=1:n 
-        %产生一个随机数，从外部集前 10%的粒子里面选 
+        %����һ������������ⲿ��ǰ 10%����������ѡ 
             randomnumber=ceil(rand*column/10);  
-            gbx(i,:)=rp(randomnumber,1:d);     %全局最优位置 
+            gbx(i,:)=rp(randomnumber,1:d);     %ȫ������λ�� 
             gbf(i,:)=rp(randomnumber,2*d+1:2*d+k); 
         end 
         rp(:,2*d+k+1:2*d+k+2)=[]; 
@@ -295,7 +302,7 @@ function REP = MOPSOCD(params,MultiObj)
             drawnow;
             axis square;
         end
-        if(k==3)% 以后再改
+        if(k==3)% �Ժ��ٸ�
             figure(h_fig); delete(h_par); delete(h_rep); 
             h_par = plot3(POS_fit(:,1),POS_fit(:,2),POS_fit(:,3),'or'); hold on;
             h_rep = plot3(REP.pos_fit(:,1),REP.pos_fit(:,2),REP.pos_fit(:,3),'ok'); hold on;
