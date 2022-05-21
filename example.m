@@ -27,14 +27,14 @@ clear all; clc;
 
 % Multi-objective function
 %MultiObjFnc = 'Schaffer';
-MultiObjFnc = 'Kursawe';
+% MultiObjFnc = 'Kursawe';
 %MultiObjFnc = 'Poloni';
 %MultiObjFnc = 'Viennet2';
 %MultiObjFnc = 'Viennet3';
-%MultiObjFnc = 'ZDT1';
-%MultiObjFnc = 'ZDT2';
-%MultiObjFnc = 'ZDT3';
-%MultiObjFnc = 'ZDT6';
+% MultiObjFnc = 'ZDT1';
+% MultiObjFnc = 'ZDT2';
+% MultiObjFnc = 'ZDT3';
+MultiObjFnc = 'ZDT6';
 
 switch MultiObjFnc
     case 'Schaffer'         % Schaffer
@@ -112,7 +112,7 @@ switch MultiObjFnc
         load('ParetoFronts/ZDT3.mat');
         MultiObj.truePF = PF;
     case 'ZDT6'             % ZDT6 (non-uniform)
-        f = @(x) 1 - exp(-4.*x(:,1)).*sin(6.*pi.*x(:,1));
+        f = @(x) 1 - exp(-4.*x(:,1)).*(sin(6.*pi.*x(:,1)).^6);
         g = @(x) 1 + 9.*(sum(x(:,2:end),2)./(size(x,2)-1)).^0.25;
         h = @(x) 1 - (f(x)./g(x)).^2;
         MultiObj.fun = @(x) [f(x), g(x).*h(x)];
@@ -124,16 +124,16 @@ switch MultiObjFnc
 end
 
 % Parameters
-params.Np = 200;        % Population size
-params.Nr = 200;        % Repository size
-params.maxgen = 500;    % Maximum number of generations
+params.Np = 100;        % Population size
+params.Nr = 100;        % Repository size
+params.maxgen = 1000;    % Maximum number of generations
 params.W = 0.4;         % Inertia weight
 params.C1 = 2;          % Individual confidence factor
 params.C2 = 2;          % Swarm confidence factor
 params.maxvel = 5;      % Maxmium vel in percentage
 
 % MOPSO
-REP = MOPSOCDELS(params,MultiObj);
+REP = MOPSOCD(params,MultiObj);
 
 % Display info
 display('Repository fitness values are stored in REP.pos_fit');
